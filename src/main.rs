@@ -1,13 +1,14 @@
+mod add_process;
+mod proc;
+
 use gtk4::*;
-use gtk4::{ApplicationWindow, prelude::*};
 use gtk4::{Application, glib};
+use gtk4::{ApplicationWindow, prelude::*};
 
 const APP_ID: &str = "com.gtk_rs.reapr";
 
-fn main () -> glib::ExitCode {
-    let app = Application::builder()
-    .application_id(APP_ID)
-    .build();
+fn main() -> glib::ExitCode {
+    let app = Application::builder().application_id(APP_ID).build();
 
     app.connect_activate(activate);
 
@@ -15,16 +16,26 @@ fn main () -> glib::ExitCode {
 }
 
 fn activate(app: &Application) {
+    let process_manager = proc::ProcessManager::new();
+    println!("{:?}", process_manager.get_all_processes());
 
+    let add_process_stuff = add_process::AddProcess::new();
+    let process_list_container = process_manager.render_processes();
+
+    // final container
     let container = Box::new(Orientation::Vertical, 10);
+    container.append(add_process_stuff.widget());
+    container.append(&process_list_container);
 
+
+    // render main application window
     let window = ApplicationWindow::builder()
-    .application(app)
-    .title("Reapr")
-    .default_height(600)
-    .default_width(720)
-    .child(&container)
-    .build();
+        .application(app)
+        .title("Reapr")
+        .default_height(600)
+        .default_width(720)
+        .child(&container)
+        .build();
 
     window.present();
 }
