@@ -17,7 +17,7 @@ fn main() -> glib::ExitCode {
 
 fn activate(app: &Application) {
     let process_manager = proc::ProcessManager::new();
-    println!("{:?}", process_manager.get_all_processes());
+    println!("{:?}", proc::ProcessManager::get_all_processes());
 
     let add_process_stuff = add_process::AddProcess::new();
     let process_list_container = process_manager.render_processes();
