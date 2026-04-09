@@ -16,15 +16,17 @@ fn main() -> glib::ExitCode {
 }
 
 fn activate(app: &Application) {
+    proc::ProcessManager::install_css();
+
     let process_manager = proc::ProcessManager::new();
-    println!("{:?}", proc::ProcessManager::get_all_processes());
 
     let process_list_container = process_manager.render_processes();
     let process_list_container_for_refresh = process_list_container.clone();
 
     let on_submit = Rc::new(move |process_name: String| {
-        proc::ProcessManager::new_process(process_name);
+        proc::ProcessManager::new_process(process_name)?;
         proc::ProcessManager::refresh_processes(&process_list_container_for_refresh);
+        Ok(())
     });
 
     let add_process_stuff = add_process::AddProcess::new(on_submit);
