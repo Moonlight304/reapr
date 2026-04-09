@@ -1,14 +1,17 @@
 [
   {
-    "name": "test",
-    "status": "running"
+    "name": "test"
   },
   {
-    "name": "hello",
-    "status": "suspended"
+    "name": "hello"
   },
   {
-    "name": "mysql",
-    "status": "Active"
+    "name": "mysql"
+  },
+  {
+    "name": "something"
+  },
+  {
+    "name": "nothing"
   }
 ]

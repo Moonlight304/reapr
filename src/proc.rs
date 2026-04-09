@@ -1,17 +1,16 @@
 use dotenv::dotenv;
 use gtk4::prelude::BoxExt;
+use gtk4::prelude::WidgetExt;
 use gtk4::{Box, Label};
 use serde::{Deserialize, Serialize};
-use std::fs::{File, OpenOptions};
+use std::fs::File;
 use std::io::prelude::*;
-use std::os::unix::process;
 use std::path::Path;
 use std::{env, fs};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Process {
     name: String,
-    status: String,
 }
 
 pub struct ProcessManager {
@@ -57,8 +56,8 @@ impl ProcessManager {
         for process in &self.processes {
             let label = Label::builder()
                 .label(format!(
-                    "Name: {}, Status: {}",
-                    process.name, process.status
+                    "Name: {}",
+                    process.name
                 ))
                 .build();
 
@@ -66,6 +65,17 @@ impl ProcessManager {
         }
 
         return process_list_container;
+    }
+
+    pub fn refresh_processes(container: &Box) {
+        while let Some(child) = container.first_child() {
+            container.remove(&child);
+        }
+
+        for process in Self::get_all_processes() {
+            let label = Label::builder().label(format!("Name: {}", process.name)).build();
+            container.append(&label);
+        }
     }
 
     pub fn get_all_processes() -> Vec<Process> {
@@ -95,15 +105,10 @@ impl ProcessManager {
         initial_processes
     }
 
-    pub fn new_process(process_name: String, process_status: String) {
-        dotenv().ok();
-        let proc_list_path = env::var("PROC_LIST_PATH").expect("Couldn't load env");
-
-        let path = Path::new(&proc_list_path);
+    pub fn new_process(process_name: String) {
 
         let new_process_object = Process {
             name: process_name,
-            status: process_status,
         };
 
         let mut all_processes = ProcessManager::get_all_processes();
@@ -112,8 +117,9 @@ impl ProcessManager {
         let json_all_processes = serde_json::to_string_pretty(&all_processes)
             .expect("Failed to serialize the process list");
 
+        dotenv().ok();
+        let proc_list_path = env::var("PROC_LIST_PATH").expect("Couldn't load env");
+        let path = Path::new(&proc_list_path);
         fs::write(path, json_all_processes).expect("Failed to write to the JSON file");
-
-        
     }
 }

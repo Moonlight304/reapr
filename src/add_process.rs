@@ -2,21 +2,17 @@ use gtk4::{
     Align, Box, Button, Entry, Orientation, Window,
     prelude::{BoxExt, ButtonExt, GtkWindowExt, *},
 };
-
-use crate::proc::ProcessManager;
+use std::rc::Rc;
 
 pub struct AddProcess {
     container: Box,
 }
 
 impl AddProcess {
-    fn open_dialog<F>(parent: &Window, on_submit: F)
-    where 
-        F: Fn(String) + 'static,
-    {
+    fn open_dialog(parent: &Window, on_submit: Rc<dyn Fn(String)>) {
         let new_process_input = Entry::builder()
-            .max_length(10)
-            .placeholder_text("Enter a Process Name")
+            .max_length(255)
+            .placeholder_text("Enter a service name")
             .visibility(true)
             .build();
 
@@ -54,7 +50,7 @@ impl AddProcess {
         dialog.present();
     }
 
-    pub fn new() -> Self {
+    pub fn new(on_submit: Rc<dyn Fn(String)>) -> Self {
         let add_process_button = Button::builder()
             .label("Add Process")
             .margin_start(20)
@@ -72,28 +68,10 @@ impl AddProcess {
 
         container.append(&add_process_button);
 
+        let on_submit = on_submit.clone();
         add_process_button.connect_clicked(move |btn| {
             if let Some(parent_window) = btn.root().and_downcast::<Window>() {
-                Self::open_dialog(&parent_window, |process_name| {
-                    println!("{}", process_name);
-
-                    let systemctl = systemctl::SystemCtl::default();
-
-                    let process_status = systemctl.get_active_state(&process_name);
-
-                    match process_status {
-                        Ok(state) => {
-                            println!("State: {}", state);
-
-                            // let mut process_state;
-                            // if state.to_string() == "Inactive"
-
-                            ProcessManager::new_process(process_name, state.to_string());
-                        },
-                        Err(e) => println!("Error: {}", e),
-                    }
-                    
-                });
+                Self::open_dialog(&parent_window, on_submit.clone());
             }
             else {
                 eprintln!("Warning: Button is not attached to a Window yet.");
